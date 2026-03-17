@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://spanda.rs/sitemap.xml
+Sitemap: https://aarambh-darshan.github.io/spanda-portfolio/sitemap.xml
