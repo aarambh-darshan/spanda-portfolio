@@ -1,0 +1,19 @@
+[package]
+name    = "spanda-portfolio"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+leptos       = { version = "0.8", features = ["csr"] }
+spanda       = { version = "0.8", features = ["wasm", "wasm-dom"] }
+wasm-bindgen = "0.2"
+web-sys      = { version = "0.3", features = [
+    "Window", "Document", "Element", "HtmlElement",
+    "CssStyleDeclaration", "DomRect",
+    "ScrollToOptions", "ScrollBehavior",
+    "IntersectionObserver", "IntersectionObserverInit",
+    "IntersectionObserverEntry",
+    "console",
+] }
+js-sys       = "0.3"
+console_error_panic_hook = "0.1"
