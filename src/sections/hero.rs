@@ -1,20 +1,33 @@
+use crate::animation;
 use leptos::prelude::*;
+use spanda::traits::Update as _;
+use spanda::tween::TweenState;
+use spanda::{Easing, Tween};
 use std::cell::RefCell;
 use std::rc::Rc;
 use wasm_bindgen::JsCast;
-use spanda::{Tween, Easing};
-use spanda::traits::Update as _;
-use spanda::tween::TweenState;
-use crate::animation;
 
 #[component]
 pub fn Hero() -> impl IntoView {
     // Split text animation signals — one per letter
     let title_text = "SPANDA";
     let subtitle_words = [
-        "A", "general-purpose", "animation", "library", "for", "Rust", "—",
-        "tweening,", "keyframes,", "timelines,", "springs", "&", "physics.",
-        "Anywhere", "Rust", "runs.",
+        "A",
+        "general-purpose",
+        "animation",
+        "library",
+        "for",
+        "Rust",
+        "—",
+        "tweening,",
+        "keyframes,",
+        "timelines,",
+        "springs",
+        "&",
+        "physics.",
+        "Anywhere",
+        "Rust",
+        "runs.",
     ];
 
     let letter_opacities: Vec<(ReadSignal<f32>, WriteSignal<f32>)> =
@@ -24,8 +37,9 @@ pub fn Hero() -> impl IntoView {
 
     let word_opacities: Vec<(ReadSignal<f32>, WriteSignal<f32>)> =
         (0..subtitle_words.len()).map(|_| signal(0.0_f32)).collect();
-    let word_ys: Vec<(ReadSignal<f32>, WriteSignal<f32>)> =
-        (0..subtitle_words.len()).map(|_| signal(20.0_f32)).collect();
+    let word_ys: Vec<(ReadSignal<f32>, WriteSignal<f32>)> = (0..subtitle_words.len())
+        .map(|_| signal(20.0_f32))
+        .collect();
 
     let (badge_opacity, set_badge_opacity) = signal(0.0_f32);
     let (cta_opacity, set_cta_opacity) = signal(0.0_f32);
@@ -45,10 +59,16 @@ pub fn Hero() -> impl IntoView {
                 let cb = wasm_bindgen::closure::Closure::once_into_js(move || {
                     // Animate Y from 80 → 0
                     let tween_y = Rc::new(RefCell::new(
-                        Tween::new(80.0_f32, 0.0).duration(0.7).easing(Easing::EaseOutExpo).build()
+                        Tween::new(80.0_f32, 0.0)
+                            .duration(0.7)
+                            .easing(Easing::EaseOutExpo)
+                            .build(),
                     ));
                     let tween_op = Rc::new(RefCell::new(
-                        Tween::new(0.0_f32, 1.0).duration(0.6).easing(Easing::EaseOutCubic).build()
+                        Tween::new(0.0_f32, 1.0)
+                            .duration(0.6)
+                            .easing(Easing::EaseOutCubic)
+                            .build(),
                     ));
                     let ty = tween_y.clone();
                     let to = tween_op.clone();
@@ -63,9 +83,12 @@ pub fn Hero() -> impl IntoView {
                         }
                     });
                 });
-                let _ = web_sys::window().unwrap().set_timeout_with_callback_and_timeout_and_arguments_0(
-                    cb.as_ref().unchecked_ref(), delay,
-                );
+                let _ = web_sys::window()
+                    .unwrap()
+                    .set_timeout_with_callback_and_timeout_and_arguments_0(
+                        cb.as_ref().unchecked_ref(),
+                        delay,
+                    );
             }
 
             // Stagger subtitle words at 40ms intervals, starting later
@@ -75,10 +98,16 @@ pub fn Hero() -> impl IntoView {
                 let delay = 3900 + (i as i32) * 40;
                 let cb = wasm_bindgen::closure::Closure::once_into_js(move || {
                     let tween_y = Rc::new(RefCell::new(
-                        Tween::new(20.0_f32, 0.0).duration(0.6).easing(Easing::EaseOutCubic).build()
+                        Tween::new(20.0_f32, 0.0)
+                            .duration(0.6)
+                            .easing(Easing::EaseOutCubic)
+                            .build(),
                     ));
                     let tween_op = Rc::new(RefCell::new(
-                        Tween::new(0.0_f32, 1.0).duration(0.5).easing(Easing::EaseOutCubic).build()
+                        Tween::new(0.0_f32, 1.0)
+                            .duration(0.5)
+                            .easing(Easing::EaseOutCubic)
+                            .build(),
                     ));
                     let ty = tween_y.clone();
                     let to = tween_op.clone();
@@ -93,9 +122,12 @@ pub fn Hero() -> impl IntoView {
                         }
                     });
                 });
-                let _ = web_sys::window().unwrap().set_timeout_with_callback_and_timeout_and_arguments_0(
-                    cb.as_ref().unchecked_ref(), delay,
-                );
+                let _ = web_sys::window()
+                    .unwrap()
+                    .set_timeout_with_callback_and_timeout_and_arguments_0(
+                        cb.as_ref().unchecked_ref(),
+                        delay,
+                    );
             }
 
             // Badge at 4.8s
@@ -103,18 +135,24 @@ pub fn Hero() -> impl IntoView {
                 let cb = wasm_bindgen::closure::Closure::once_into_js(move || {
                     animation::tween_signal(0.0, 1.0, 0.8, Easing::EaseOutCubic, set_badge_opacity);
                 });
-                let _ = web_sys::window().unwrap().set_timeout_with_callback_and_timeout_and_arguments_0(
-                    cb.as_ref().unchecked_ref(), 4800,
-                );
+                let _ = web_sys::window()
+                    .unwrap()
+                    .set_timeout_with_callback_and_timeout_and_arguments_0(
+                        cb.as_ref().unchecked_ref(),
+                        4800,
+                    );
             }
             // CTA at 5.0s
             {
                 let cb = wasm_bindgen::closure::Closure::once_into_js(move || {
                     animation::tween_signal(0.0, 1.0, 0.8, Easing::EaseOutCubic, set_cta_opacity);
                 });
-                let _ = web_sys::window().unwrap().set_timeout_with_callback_and_timeout_and_arguments_0(
-                    cb.as_ref().unchecked_ref(), 5000,
-                );
+                let _ = web_sys::window()
+                    .unwrap()
+                    .set_timeout_with_callback_and_timeout_and_arguments_0(
+                        cb.as_ref().unchecked_ref(),
+                        5000,
+                    );
             }
         }
     });
@@ -172,7 +210,7 @@ pub fn Hero() -> impl IntoView {
                     (1.0 - badge_opacity.get()) * 15.0
                 )>
                     <span>"🦀"</span>
-                    <span>"v0.9.0  ·  no_std  ·  zero unsafe"</span>
+                    <span>"v0.9.1  ·  no_std  ·  zero unsafe"</span>
                 </div>
 
                 <div class="hero-cta-group" style=move || format!(
