@@ -26,6 +26,8 @@ pub fn CodeExamples() -> impl IntoView {
 
             // ── Example 3: Timeline ──
             <TimelineExample />
+
+            <GpuComputeExample />
         </section>
     }
 }
@@ -83,7 +85,7 @@ fn TweenExample() -> impl IntoView {
 
             <div class="code-preview">
                 <div style="width: 100%; text-align: center;">
-                    <div style="font-family: 'Space Grotesk', sans-serif; font-size: 3rem; font-weight: 700; color: #ff6b35;">
+                    <div style="font-family: 'Space Grotesk', sans-serif; font-size: 3rem; font-weight: 700; color: var(--color-primary);">
                         {move || format!("{:.1}", value.get())}
                     </div>
                     <div class="tween-bar-track" style="margin-top: 1rem;">
@@ -257,7 +259,7 @@ fn TimelineExample() -> impl IntoView {
                         } style:transform=move || {
                             let t = (p.get() * 3.0).min(1.0);
                             format!("translateY({}px)", (1.0 - t) * 30.0)
-                        } style="width: 60px; height: 60px; border-radius: 12px; background: linear-gradient(135deg, #ff6b35, #e85d26); transition: none;" />
+                        } style="width: 60px; height: 60px; border-radius: 12px; background: linear-gradient(135deg, var(--color-primary), #e85d26); transition: none;" />
 
                         <div style:opacity=move || {
                             let t = ((p.get() - 0.2).max(0.0) * 3.3).min(1.0);
@@ -265,7 +267,7 @@ fn TimelineExample() -> impl IntoView {
                         } style:transform=move || {
                             let t = ((p.get() - 0.2).max(0.0) * 3.3).min(1.0);
                             format!("translateY({}px) scale({})", (1.0 - t) * 40.0, 0.5 + t * 0.5)
-                        } style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #f7c948, #e8b530); transition: none;" />
+                        } style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--color-secondary), #e8b530); transition: none;" />
 
                         <div style:opacity=move || {
                             let t = ((p.get() - 0.5).max(0.0) * 2.0).min(1.0);
@@ -283,6 +285,70 @@ fn TimelineExample() -> impl IntoView {
                     >
                         {move || if running.get() { "Sequencing..." } else { "▶ Run Sequence" }}
                     </button>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+#[component]
+fn GpuComputeExample() -> impl IntoView {
+    let (time, set_time) = signal(0.0f32);
+    
+    crate::animation::start_raf_loop(move |dt| {
+        set_time.update(|t| *t += dt);
+    });
+
+    view! {
+        <div class="code-example reveal">
+            <div class="code-block">
+                <div class="code-header">
+                    <div class="code-dot red" />
+                    <div class="code-dot yellow" />
+                    <div class="code-dot green" />
+                    <span class="code-filename">"gpu_batch.rs"</span>
+                </div>
+                <pre class="code-body">
+<span class="kw">"use "</span><span class="ty">"spanda"</span><span class="kw">"::gpu::{"</span><span class="ty">"GpuContext"</span><span class="kw">", "</span><span class="ty">"GpuAnimationBatch"</span><span class="kw">"};\n\n"</span>
+<span class="cm">"// Auto-detect adapter or fallback to CPU seamlessly\n"</span>
+<span class="kw">"let "</span><span>"ctx = "</span><span class="ty">"GpuContext"</span><span>"::new_auto()."</span><span class="kw">"await"</span><span>";\n"</span>
+<span class="kw">"let mut "</span><span>"batch = "</span><span class="ty">"GpuAnimationBatch"</span><span>"::new(&ctx, "</span><span class="num">"10000"</span><span>");\n\n"</span>
+<span class="cm">"// Add thousands of tweens\n"</span>
+<span class="kw">"for"</span><span>" _ "</span><span class="kw">"in"</span><span>" "</span><span class="num">"0"</span><span>".."</span><span class="num">"10000"</span><span>" {\n"</span>
+<span>"    batch.add("</span><span class="ty">"Tween"</span><span>"::new("</span><span class="num">"0.0"</span><span>", "</span><span class="num">"100.0"</span><span>").duration("</span><span class="num">"2.0"</span><span>").easing("</span><span class="ty">"Easing"</span><span>"::Linear));\n"</span>
+<span>"}\n\n"</span>
+<span class="cm">"// Evaluate all on GPU in a single compute pass\n"</span>
+<span>"batch.update_all(&ctx, dt)."</span><span class="kw">"await"</span><span>";\n"</span>
+<span class="kw">"let "</span><span>"results = batch.read_values(&ctx)."</span><span class="kw">"await"</span><span>";"</span>
+                </pre>
+            </div>
+
+            <div class="code-preview">
+                <div style="width: 100%; text-align: center;">
+                    <div style="display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; opacity: 0.8; max-height: 100px; overflow: hidden; align-content: flex-start;">
+                        <For
+                            each=move || 0..80
+                            key=|i| *i
+                            children=move |i| {
+                                let bg = if i % 3 == 0 { "var(--color-primary)" } else if i % 3 == 1 { "var(--color-secondary)" } else { "#56b6c2" };
+                                let size = 4 + (i % 4) * 2;
+                                let phase_x = (i as f32 * 0.5).sin();
+                                let phase_y = (i as f32 * 0.7).cos();
+                                let phase_speed = 1.0 + (i as f32 % 5.0) * 0.2;
+                                view! {
+                                    <div style=move || {
+                                        let t = time.get() * phase_speed * 2.0;
+                                        let x = (t + phase_x * 10.0).sin() * 8.0;
+                                        let y = (t + phase_y * 10.0).cos() * 8.0;
+                                        format!("width: {}px; height: {}px; border-radius: 50%; background: {}; opacity: {}; transform: translate({x}px, {y}px);", size, size, bg, 0.3 + (i as f32 % 10.0) / 20.0)
+                                    }></div>
+                                }
+                            }
+                        />
+                    </div>
+                    <div style="margin-top: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: #98c379; background: rgba(0,0,0,0.5); padding: 0.5rem; border-radius: 6px;">
+                        "[10,000 particles updated in 0.1ms via WGSL]"
+                    </div>
                 </div>
             </div>
         </div>

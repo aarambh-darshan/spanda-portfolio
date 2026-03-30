@@ -29,12 +29,14 @@ pub fn About() -> impl IntoView {
                         <div class="stat-label">"Integration Targets"</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value">"v0.8"</div>
+                        <div class="stat-value">"v0.9.0"</div>
                         <div class="stat-label">"Latest Release"</div>
                     </div>
                 </div>
 
                 <div class="about-badges">
+                    <span class="about-badge">"🚀 GPU Compute"</span>
+                    <span class="about-badge">"📱 Gestures"</span>
                     <span class="about-badge">"🔧 no_std"</span>
                     <span class="about-badge">"🌐 WASM"</span>
                     <span class="about-badge">"🎮 Bevy"</span>
