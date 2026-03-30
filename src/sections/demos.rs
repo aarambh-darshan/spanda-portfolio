@@ -5,6 +5,9 @@ use wasm_bindgen::JsCast;
 use spanda::{Tween, Easing, Spring, SpringConfig};
 use spanda::tween::TweenState;
 use spanda::traits::Update as _;
+use spanda::gesture::{GestureRecognizer, Gesture, SwipeDirection};
+use spanda::layout::{LayoutAnimator, Rect};
+use spanda::drag::PointerData;
 use crate::animation;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -15,6 +18,8 @@ enum DemoTab {
     Morph,
     Timeline,
     SplitText,
+    Gestures,
+    Layout,
 }
 
 #[component]
@@ -38,6 +43,8 @@ pub fn Demos() -> impl IntoView {
                 <DemoTabBtn tab=DemoTab::Morph active=active_tab set_active=set_active_tab label="Shape Morph" />
                 <DemoTabBtn tab=DemoTab::Timeline active=active_tab set_active=set_active_tab label="Timeline" />
                 <DemoTabBtn tab=DemoTab::SplitText active=active_tab set_active=set_active_tab label="Split Text" />
+                <DemoTabBtn tab=DemoTab::Gestures active=active_tab set_active=set_active_tab label="Gestures" />
+                <DemoTabBtn tab=DemoTab::Layout active=active_tab set_active=set_active_tab label="Layout" />
             </div>
 
             <div class="demo-panel">
@@ -48,6 +55,8 @@ pub fn Demos() -> impl IntoView {
                     DemoTab::Morph => view! { <MorphDemo /> }.into_any(),
                     DemoTab::Timeline => view! { <TimelineDemo /> }.into_any(),
                     DemoTab::SplitText => view! { <SplitTextDemo /> }.into_any(),
+                    DemoTab::Gestures => view! { <GesturesDemo /> }.into_any(),
+                    DemoTab::Layout => view! { <LayoutDemo /> }.into_any(),
                 }}
             </div>
         </section>
@@ -188,7 +197,7 @@ fn EasingDemo() -> impl IntoView {
                     <text x="5" y={format!("{}", 490.0 - 1.3 / 1.6 * 480.0 + 4.0)}
                           fill="rgba(255,255,255,0.2)" font-size="10" font-family="JetBrains Mono">"1"</text>
                     // Curve
-                    <path d=curve_path fill="none" stroke="#ff6b35" stroke-width="2.5" opacity="0.9" />
+                    <path d=curve_path fill="none" stroke="var(--color-primary)" stroke-width="2.5" opacity="0.9" />
                 </svg>
                 // Animated dot — follows along the curve correctly
                 <div
@@ -202,8 +211,8 @@ fn EasingDemo() -> impl IntoView {
                         let y_pct = ((v + 0.3) / 1.6) * 100.0;
                         format!(
                             "position: absolute; left: calc({}% + 7px); bottom: calc({}% - 7px); \
-                             width: 14px; height: 14px; border-radius: 50%; background: #ff6b35; \
-                             box-shadow: 0 0 20px rgba(255,107,53,0.5); pointer-events: none; transition: none;",
+                             width: 14px; height: 14px; border-radius: 50%; background: var(--color-primary); \
+                             box-shadow: 0 0 20px rgba(var(--color-primary-rgb), 0.5); pointer-events: none; transition: none;",
                             x_pct * 0.933 + 3.33,  // adjust for 20px padding
                             y_pct * 0.96 + 2.0
                         )
@@ -369,16 +378,28 @@ fn SpringDemo() -> impl IntoView {
             </div>
 
             <div style="margin-top: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                <button class="easing-option" on:click=move |_| { set_stiffness.set(60.0); set_damping.set(14.0); set_mass.set(1.0); }>
+                <button 
+                    class=move || if stiffness.get() == 60.0 && damping.get() == 14.0 && mass.get() == 1.0 { "easing-option active" } else { "easing-option" }
+                    on:click=move |_| { set_stiffness.set(60.0); set_damping.set(14.0); set_mass.set(1.0); }
+                >
                     "Gentle"
                 </button>
-                <button class="easing-option" on:click=move |_| { set_stiffness.set(180.0); set_damping.set(12.0); set_mass.set(1.0); }>
+                <button 
+                    class=move || if stiffness.get() == 180.0 && damping.get() == 12.0 && mass.get() == 1.0 { "easing-option active" } else { "easing-option" }
+                    on:click=move |_| { set_stiffness.set(180.0); set_damping.set(12.0); set_mass.set(1.0); }
+                >
                     "Wobbly"
                 </button>
-                <button class="easing-option" on:click=move |_| { set_stiffness.set(210.0); set_damping.set(20.0); set_mass.set(1.0); }>
+                <button 
+                    class=move || if stiffness.get() == 210.0 && damping.get() == 20.0 && mass.get() == 1.0 { "easing-option active" } else { "easing-option" }
+                    on:click=move |_| { set_stiffness.set(210.0); set_damping.set(20.0); set_mass.set(1.0); }
+                >
                     "Stiff"
                 </button>
-                <button class="easing-option" on:click=move |_| { set_stiffness.set(37.0); set_damping.set(14.0); set_mass.set(1.0); }>
+                <button 
+                    class=move || if stiffness.get() == 37.0 && damping.get() == 14.0 && mass.get() == 1.0 { "easing-option active" } else { "easing-option" }
+                    on:click=move |_| { set_stiffness.set(37.0); set_damping.set(14.0); set_mass.set(1.0); }
+                >
                     "Slow"
                 </button>
             </div>
@@ -446,37 +467,37 @@ fn SvgDrawDemo() -> impl IntoView {
                     // "s" — curved
                     <path
                         d="M30,55 C30,30 70,25 70,50 C70,75 30,70 30,95 C30,120 70,125 70,100"
-                        fill="none" stroke="#ff6b35" stroke-width="4" stroke-linecap="round"
+                        fill="none" stroke="var(--color-primary)" stroke-width="4" stroke-linecap="round"
                         stroke-dasharray="2000" stroke-dashoffset=move || offset.get()
                     />
                     // "p" — vertical + round
                     <path
                         d="M100,40 L100,140 M100,40 L100,45 C100,25 150,25 150,50 C150,75 100,75 100,55"
-                        fill="none" stroke="#ff6b35" stroke-width="4" stroke-linecap="round"
+                        fill="none" stroke="var(--color-primary)" stroke-width="4" stroke-linecap="round"
                         stroke-dasharray="2000" stroke-dashoffset=move || offset.get()
                     />
                     // "a" — round + stem
                     <path
                         d="M230,95 C230,60 180,55 180,80 C180,105 230,110 230,80 L230,100"
-                        fill="none" stroke="#ff6b35" stroke-width="4" stroke-linecap="round"
+                        fill="none" stroke="var(--color-primary)" stroke-width="4" stroke-linecap="round"
                         stroke-dasharray="2000" stroke-dashoffset=move || offset.get()
                     />
                     // "n" — vertical + arch
                     <path
                         d="M260,100 L260,55 C260,35 310,35 310,55 L310,100"
-                        fill="none" stroke="#ff6b35" stroke-width="4" stroke-linecap="round"
+                        fill="none" stroke="var(--color-primary)" stroke-width="4" stroke-linecap="round"
                         stroke-dasharray="2000" stroke-dashoffset=move || offset.get()
                     />
                     // "d" — round + stem
                     <path
                         d="M390,95 C390,60 340,55 340,80 C340,105 390,110 390,80 L390,30 L390,100"
-                        fill="none" stroke="#ff6b35" stroke-width="4" stroke-linecap="round"
+                        fill="none" stroke="var(--color-primary)" stroke-width="4" stroke-linecap="round"
                         stroke-dasharray="2000" stroke-dashoffset=move || offset.get()
                     />
                     // "a" — final a
                     <path
                         d="M470,95 C470,60 420,55 420,80 C420,105 470,110 470,80 L470,100"
-                        fill="none" stroke="#ff6b35" stroke-width="4" stroke-linecap="round"
+                        fill="none" stroke="var(--color-primary)" stroke-width="4" stroke-linecap="round"
                         stroke-dasharray="2000" stroke-dashoffset=move || offset.get()
                     />
                 </svg>
@@ -613,8 +634,8 @@ fn MorphDemo() -> impl IntoView {
                 <svg viewBox="0 0 300 280">
                     <polygon
                         points=points_str
-                        fill="rgba(255, 107, 53, 0.12)"
-                        stroke="#ff6b35"
+                        fill="rgba(var(--color-primary-rgb), 0.12)"
+                        stroke="var(--color-primary)"
                         stroke-width="2"
                         stroke-linejoin="round"
                     />
@@ -678,8 +699,8 @@ fn TimelineDemo() -> impl IntoView {
 
     // Timeline items: (label, start, end, color)
     let items: &[(&str, f32, f32, &str)] = &[
-        ("fade_in",   0.0,  0.20, "#ff6b35"),
-        ("slide_up",  0.10, 0.40, "#f7c948"),
+        ("fade_in",   0.0,  0.20, "var(--color-primary)"),
+        ("slide_up",  0.10, 0.40, "var(--color-secondary)"),
         ("scale",     0.25, 0.55, "#56b6c2"),
         ("rotate",    0.40, 0.70, "#c678dd"),
         ("color",     0.55, 0.80, "#98c379"),
@@ -1055,6 +1076,244 @@ fn SplitTextDemo() -> impl IntoView {
 
             <p style="margin-top: 1rem; font-size: 0.75rem; color: rgba(255,255,255,0.3); font-family: 'JetBrains Mono', monospace; text-align: center;">
                 "SplitText + stagger() + Tween — GSAP-style text animation in Rust"
+            </p>
+        </div>
+    }
+}
+
+// ── Gestures Demo ────────────────────────────────────────────────────────
+
+#[component]
+fn GesturesDemo() -> impl IntoView {
+    let (last_gesture, set_last_gesture) = signal("Try interacting!".to_string());
+    
+    let recognizer = Rc::new(RefCell::new(GestureRecognizer::new()));
+    
+    {
+        let r = recognizer.clone();
+        animation::start_raf_loop(move |dt| {
+            if let Some(mut rec) = r.try_borrow_mut().ok() {
+                if let Some(g) = rec.update(dt) {
+                    if let Gesture::LongPress { duration, .. } = g {
+                        set_last_gesture.set(format!("Long Press ({:.1}s)", duration));
+                    }
+                }
+            }
+        });
+    }
+
+    let on_down = {
+        let r = recognizer.clone();
+        move |ev: web_sys::PointerEvent| {
+            if let Some(mut rec) = r.try_borrow_mut().ok() {
+                rec.on_pointer_down(PointerData {
+                    pointer_id: ev.pointer_id(),
+                    x: ev.client_x() as f32,
+                    y: ev.client_y() as f32,
+                    pressure: ev.pressure(),
+                });
+            }
+        }
+    };
+
+    let on_move = {
+        let r = recognizer.clone();
+        move |ev: web_sys::PointerEvent| {
+            if let Some(mut rec) = r.try_borrow_mut().ok() {
+                if let Some(g) = rec.on_pointer_move(PointerData {
+                    pointer_id: ev.pointer_id(),
+                    x: ev.client_x() as f32,
+                    y: ev.client_y() as f32,
+                    pressure: ev.pressure(),
+                }) {
+                    match g {
+                        Gesture::Pinch { scale, .. } => set_last_gesture.set(format!("Pinch (x{:.2})", scale)),
+                        Gesture::Rotate { angle, .. } => set_last_gesture.set(format!("Rotate ({:.1}°)", angle.to_degrees())),
+                        _ => {}
+                    }
+                }
+            }
+        }
+    };
+
+    let on_up = {
+        let r = recognizer.clone();
+        move |ev: web_sys::PointerEvent| {
+            if let Some(mut rec) = r.try_borrow_mut().ok() {
+                if let Some(g) = rec.on_pointer_up(PointerData {
+                    pointer_id: ev.pointer_id(),
+                    x: ev.client_x() as f32,
+                    y: ev.client_y() as f32,
+                    pressure: ev.pressure(),
+                }) {
+                    match g {
+                        Gesture::Tap { .. } => set_last_gesture.set("Tap".to_string()),
+                        Gesture::Swipe { direction, velocity, .. } => {
+                            let dir_str = match direction {
+                                SwipeDirection::Up => "Up",
+                                SwipeDirection::Down => "Down",
+                                SwipeDirection::Left => "Left",
+                                SwipeDirection::Right => "Right",
+                            };
+                            set_last_gesture.set(format!("Swipe {} ({:.0} px/s)", dir_str, velocity));
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        }
+    };
+
+    let on_cancel = {
+        let r = recognizer.clone();
+        move |ev: web_sys::PointerEvent| {
+            if let Some(mut rec) = r.try_borrow_mut().ok() {
+                let _ = rec.on_pointer_up(PointerData {
+                    pointer_id: ev.pointer_id(),
+                    x: ev.client_x() as f32,
+                    y: ev.client_y() as f32,
+                    pressure: ev.pressure(),
+                });
+            }
+        }
+    };
+
+    let prevent_default = |ev: web_sys::MouseEvent| {
+        ev.prevent_default();
+    };
+
+    view! {
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h3 style="font-size: 1.1rem; font-weight: 600;">"Gesture Recognition"</h3>
+            </div>
+            
+            <div 
+                style="height: 250px; background: rgba(var(--color-primary-rgb), 0.1); border: 2px dashed var(--color-primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: grab; touch-action: none; user-select: none;"
+                on:pointerdown=on_down
+                on:pointermove=on_move
+                on:pointerup=on_up
+                on:pointercancel=on_cancel
+                on:contextmenu=prevent_default
+            >
+                <div style="text-align: center; pointer-events: none;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">"👆"</div>
+                    <div style="font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 1.2rem; color: var(--color-primary);">
+                        {move || last_gesture.get()}
+                    </div>
+                </div>
+            </div>
+            
+            <p style="margin-top: 1rem; font-size: 0.75rem; color: rgba(255,255,255,0.3); font-family: 'JetBrains Mono', monospace; text-align: center;">
+                "Tap, Long Press, Swipe, or use two fingers to Pinch/Rotate."
+            </p>
+        </div>
+    }
+}
+
+// ── Layout Demo ─────────────────────────────────────────────────────────
+
+#[component]
+fn LayoutDemo() -> impl IntoView {
+    let (items, set_items) = signal(vec!["FLIP-A", "FLIP-B", "FLIP-C", "FLIP-D"]);
+    let layout = Rc::new(RefCell::new(LayoutAnimator::new()));
+    
+    let (trans_a, set_trans_a) = signal("none".to_string());
+    let (trans_b, set_trans_b) = signal("none".to_string());
+    let (trans_c, set_trans_c) = signal("none".to_string());
+    let (trans_d, set_trans_d) = signal("none".to_string());
+
+    let shuffle = {
+        let layout_clone = layout.clone();
+        
+        // Single persistent RAF loop
+        let l_c_loop = layout.clone();
+        animation::start_raf_loop(move |dt| {
+            if let Ok(mut l2) = l_c_loop.try_borrow_mut() {
+                if l2.is_animating() {
+                    l2.update(dt);
+                    set_trans_a.set(l2.css_transform("FLIP-A").unwrap_or_else(|| "none".to_string()));
+                    set_trans_b.set(l2.css_transform("FLIP-B").unwrap_or_else(|| "none".to_string()));
+                    set_trans_c.set(l2.css_transform("FLIP-C").unwrap_or_else(|| "none".to_string()));
+                    set_trans_d.set(l2.css_transform("FLIP-D").unwrap_or_else(|| "none".to_string()));
+                }
+            }
+        });
+
+        move |_| {
+            let doc = web_sys::window().unwrap().document().unwrap();
+            let mut arr = items.get_untracked();
+            
+            if let Ok(mut l) = layout_clone.try_borrow_mut() {
+                for id in &arr {
+                    if let Some(el) = doc.get_element_by_id(id) {
+                        l.track(id, Rect::from_element(&el));
+                    }
+                }
+            }
+
+            arr.rotate_right(1);
+            set_items.set(arr.clone());
+
+            let l_c = layout_clone.clone();
+            let cb = wasm_bindgen::closure::Closure::once_into_js(move || {
+                if let Ok(mut l) = l_c.try_borrow_mut() {
+                    let doc2 = web_sys::window().unwrap().document().unwrap();
+                    let mut new_rects = Vec::new();
+                    for id in &arr {
+                        if let Some(el) = doc2.get_element_by_id(id) {
+                            new_rects.push((*id, Rect::from_element(&el)));
+                        }
+                    }
+                    l.compute_transitions(&new_rects, 0.5, Easing::EaseOutCubic);
+                }
+            });
+            let _ = web_sys::window().unwrap().set_timeout_with_callback_and_timeout_and_arguments_0(
+                cb.as_ref().unchecked_ref(), 10
+            );
+        }
+    };
+
+    view! {
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h3 style="font-size: 1.1rem; font-weight: 600;">"FLIP Layout Animation"</h3>
+                <button class="btn-primary" style="padding: 0.5rem 1.0rem; font-size: 0.85rem;" on:click=shuffle>
+                    "🔁 Reorder Items"
+                </button>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <For
+                    each=move || items.get()
+                    key=|id| *id
+                    children=move |id| {
+                        let (bg, t_sig) = match id {
+                            "FLIP-A" => ("var(--color-primary)", trans_a),
+                            "FLIP-B" => ("var(--color-secondary)", trans_b),
+                            "FLIP-C" => ("#56b6c2", trans_c),
+                            _        => ("#c678dd", trans_d),
+                        };
+                        view! {
+                            <div 
+                                id=id
+                                style=move || format!(
+                                    "width: 100px; height: 100px; border-radius: 12px; background: {}; \
+                                     display: flex; align-items: center; justify-content: center; \
+                                     font-size: 2rem; font-weight: 700; transform: {}; transform-origin: top left; \
+                                     transition: none; will-change: transform;",
+                                    bg, t_sig.get()
+                                )
+                            >
+                                {id.chars().last().unwrap().to_string()}
+                            </div>
+                        }
+                    }
+                />
+            </div>
+            
+            <p style="margin-top: 1.5rem; font-size: 0.75rem; color: rgba(255,255,255,0.3); font-family: 'JetBrains Mono', monospace; text-align: center;">
+                "LayoutAnimator tracks element bounding rects and generates translation/scale tweens."
             </p>
         </div>
     }

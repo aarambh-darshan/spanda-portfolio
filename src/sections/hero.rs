@@ -172,7 +172,7 @@ pub fn Hero() -> impl IntoView {
                     (1.0 - badge_opacity.get()) * 15.0
                 )>
                     <span>"🦀"</span>
-                    <span>"v0.8  ·  no_std  ·  zero unsafe"</span>
+                    <span>"v0.9.0  ·  no_std  ·  zero unsafe"</span>
                 </div>
 
                 <div class="hero-cta-group" style=move || format!(

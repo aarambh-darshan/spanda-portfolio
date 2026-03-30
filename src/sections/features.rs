@@ -8,6 +8,9 @@ struct Feature {
 
 const FEATURES: &[Feature] = &[
     Feature { icon: "🎯", title: "Tweens", desc: "Smooth value interpolation from A to B with builder pattern, delays, time scaling, and callbacks." },
+    Feature { icon: "🚀", title: "GPU Compute", desc: "Batch evaluate thousands of tweens concurrently using WGSL compute shaders. Includes auto-CPU fallback." },
+    Feature { icon: "🛠️", title: "Layout Anim", desc: "Auto-generate FLIP sequence animations for DOM elements. Cross-view shared element transitions." },
+    Feature { icon: "📱", title: "Gestures", desc: "Platform-agnostic gesture recognition for Tap, Swipe, Pinch, and Rotate with configurable thresholds." },
     Feature { icon: "📐", title: "35+ Easing Curves", desc: "From Quad to Elastic to Bounce — plus CSS cubic-bezier(), Steps, RoughEase, SlowMo, and Wiggle." },
     Feature { icon: "🎹", title: "Keyframe Tracks", desc: "Multi-stop keyframe animations with per-segment easing. Supports Loop::Forever and PingPong." },
     Feature { icon: "🎬", title: "Timelines & Sequences", desc: "Compose animations concurrently or sequentially. GSAP-style stagger, At::Label positioning." },

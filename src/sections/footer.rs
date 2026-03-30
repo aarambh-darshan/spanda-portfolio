@@ -36,7 +36,7 @@ pub fn Footer() -> impl IntoView {
                 <span>"© 2025 Aarambh Darshan. MIT / Apache-2.0"</span>
                 <span style="display: flex; align-items: center; gap: 0.4rem;">
                     "Built with "
-                    <span style="color: #ff6b35; font-weight: 600;">"spanda"</span>
+                    <span style="color: var(--color-primary); font-weight: 600;">"spanda"</span>
                     " + "
                     <span style="color: #e5c07b; font-weight: 600;">"Leptos"</span>
                     " 🦀"
