@@ -42,12 +42,10 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
-    <!-- Tailwind CSS v4 CDN -->
-    <script src="https://cdn.tailwindcss.com/4"></script>
+    <!-- Tailwind CSS v4 via Trunk -->
+    <link data-trunk rel="tailwind-css" href="style/input.css" />
 
     <!-- Structured Data (JSON-LD) -->
     <script type="application/ld+json">
@@ -67,7 +65,7 @@
     }
     </script>
 
-    <link data-trunk rel="css" href="style.css" />
+
     <link data-trunk rel="copy-file" href="favicon.svg" />
     <link data-trunk rel="copy-file" href="robots.txt" />
     <link data-trunk rel="copy-file" href="sitemap.xml" />
@@ -75,8 +73,8 @@
 </head>
 
 <body>
+    <!-- Scroll reveal observer -->
     <script>
-        // Scroll reveal observer
         document.addEventListener('DOMContentLoaded', function () {
             function initReveal() {
                 const observer = new IntersectionObserver((entries) => {

@@ -1,14 +1,14 @@
+use crate::animation;
 use leptos::prelude::*;
+use spanda::drag::PointerData;
+use spanda::gesture::{Gesture, GestureRecognizer, SwipeDirection};
+use spanda::layout::{LayoutAnimator, Rect};
+use spanda::traits::Update as _;
+use spanda::tween::TweenState;
+use spanda::{Easing, Spring, SpringConfig, Tween};
 use std::cell::RefCell;
 use std::rc::Rc;
 use wasm_bindgen::JsCast;
-use spanda::{Tween, Easing, Spring, SpringConfig};
-use spanda::tween::TweenState;
-use spanda::traits::Update as _;
-use spanda::gesture::{GestureRecognizer, Gesture, SwipeDirection};
-use spanda::layout::{LayoutAnimator, Rect};
-use spanda::drag::PointerData;
-use crate::animation;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum DemoTab {
@@ -27,16 +27,16 @@ pub fn Demos() -> impl IntoView {
     let (active_tab, set_active_tab) = signal(DemoTab::Easing);
 
     view! {
-        <section class="section" id="demos">
-            <div class="reveal">
-                <span class="section-label">"Interactive"</span>
-                <h2 class="section-title">"Spanda in motion."</h2>
-                <p class="section-desc">
+        <section class="bg-code-bg py-32 px-[5%]" id="demos">
+            <div class="reveal max-w-[1300px] mx-auto pt-16">
+                <span class="font-mono text-accent text-sm tracking-widest uppercase font-bold">"// INTERACTIVE"</span>
+                <h2 class="font-instrument italic text-[4rem] text-white leading-none mt-6">"Spanda in motion."</h2>
+                <p class="font-syne text-white/60 text-lg mt-6 max-w-[600px]">
                     "See Spanda's animation primitives running live — powered by real Rust/WASM code."
                 </p>
             </div>
 
-            <div class="demo-tabs" style="margin-top: 3rem;">
+            <div class="flex flex-wrap gap-2 mt-12 max-w-[1300px] mx-auto">
                 <DemoTabBtn tab=DemoTab::Easing active=active_tab set_active=set_active_tab label="Easing Curves" />
                 <DemoTabBtn tab=DemoTab::Spring active=active_tab set_active=set_active_tab label="Spring Physics" />
                 <DemoTabBtn tab=DemoTab::SvgDraw active=active_tab set_active=set_active_tab label="SVG Draw" />
@@ -47,7 +47,7 @@ pub fn Demos() -> impl IntoView {
                 <DemoTabBtn tab=DemoTab::Layout active=active_tab set_active=set_active_tab label="Layout" />
             </div>
 
-            <div class="demo-panel">
+            <div class="mt-8 p-10 bg-[#111] rounded-none max-w-[1300px] mx-auto text-white">
                 {move || match active_tab.get() {
                     DemoTab::Easing => view! { <EasingDemo /> }.into_any(),
                     DemoTab::Spring => view! { <SpringDemo /> }.into_any(),
@@ -72,7 +72,11 @@ fn DemoTabBtn(
 ) -> impl IntoView {
     view! {
         <button
-            class=move || if active.get() == tab { "demo-tab active" } else { "demo-tab" }
+            class=move || if active.get() == tab {
+                "font-mono text-sm uppercase px-6 py-2 border border-accent bg-accent text-black transition-colors rounded-none"
+            } else {
+                "font-mono text-sm uppercase px-6 py-2 border border-white/30 text-white hover:border-white transition-colors rounded-none"
+            }
             on:click=move |_| set_active.set(tab)
         >
             {label}
@@ -83,21 +87,21 @@ fn DemoTabBtn(
 // ── Easing Demo ─────────────────────────────────────────────────────────
 
 const EASING_NAMES: &[(&str, fn() -> Easing)] = &[
-    ("Linear",         || Easing::Linear),
-    ("EaseInQuad",     || Easing::EaseInQuad),
-    ("EaseOutQuad",    || Easing::EaseOutQuad),
+    ("Linear", || Easing::Linear),
+    ("EaseInQuad", || Easing::EaseInQuad),
+    ("EaseOutQuad", || Easing::EaseOutQuad),
     ("EaseInOutCubic", || Easing::EaseInOutCubic),
-    ("EaseOutCubic",   || Easing::EaseOutCubic),
-    ("EaseInQuart",    || Easing::EaseInQuart),
-    ("EaseOutQuart",   || Easing::EaseOutQuart),
-    ("EaseInOutExpo",  || Easing::EaseInOutExpo),
-    ("EaseOutExpo",    || Easing::EaseOutExpo),
-    ("EaseInBack",     || Easing::EaseInBack),
-    ("EaseOutBack",    || Easing::EaseOutBack),
-    ("EaseInOutBack",  || Easing::EaseInOutBack),
+    ("EaseOutCubic", || Easing::EaseOutCubic),
+    ("EaseInQuart", || Easing::EaseInQuart),
+    ("EaseOutQuart", || Easing::EaseOutQuart),
+    ("EaseInOutExpo", || Easing::EaseInOutExpo),
+    ("EaseOutExpo", || Easing::EaseOutExpo),
+    ("EaseInBack", || Easing::EaseInBack),
+    ("EaseOutBack", || Easing::EaseOutBack),
+    ("EaseInOutBack", || Easing::EaseInOutBack),
     ("EaseOutElastic", || Easing::EaseOutElastic),
-    ("EaseOutBounce",  || Easing::EaseOutBounce),
-    ("EaseInOutBounce",|| Easing::EaseInOutBounce),
+    ("EaseOutBounce", || Easing::EaseOutBounce),
+    ("EaseInOutBounce", || Easing::EaseInOutBounce),
 ];
 
 #[component]
@@ -131,7 +135,9 @@ fn EasingDemo() -> impl IntoView {
     let (raw_t, set_raw_t) = signal(0.0_f32);
 
     let play_with_tracking = move |_ev: web_sys::MouseEvent| {
-        if running.get() { return; }
+        if running.get() {
+            return;
+        }
         set_running.set(true);
         set_progress.set(0.0);
         set_raw_t.set(0.0);
@@ -263,7 +269,8 @@ fn SpringDemo() -> impl IntoView {
             damping: damping.get_untracked(),
             mass: mass.get_untracked(),
             epsilon: 0.01,
-        }).with_position(position.get_untracked())
+        })
+        .with_position(position.get_untracked()),
     ));
 
     // Update config whenever sliders change
@@ -378,25 +385,25 @@ fn SpringDemo() -> impl IntoView {
             </div>
 
             <div style="margin-top: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                <button 
+                <button
                     class=move || if stiffness.get() == 60.0 && damping.get() == 14.0 && mass.get() == 1.0 { "easing-option active" } else { "easing-option" }
                     on:click=move |_| { set_stiffness.set(60.0); set_damping.set(14.0); set_mass.set(1.0); }
                 >
                     "Gentle"
                 </button>
-                <button 
+                <button
                     class=move || if stiffness.get() == 180.0 && damping.get() == 12.0 && mass.get() == 1.0 { "easing-option active" } else { "easing-option" }
                     on:click=move |_| { set_stiffness.set(180.0); set_damping.set(12.0); set_mass.set(1.0); }
                 >
                     "Wobbly"
                 </button>
-                <button 
+                <button
                     class=move || if stiffness.get() == 210.0 && damping.get() == 20.0 && mass.get() == 1.0 { "easing-option active" } else { "easing-option" }
                     on:click=move |_| { set_stiffness.set(210.0); set_damping.set(20.0); set_mass.set(1.0); }
                 >
                     "Stiff"
                 </button>
-                <button 
+                <button
                     class=move || if stiffness.get() == 37.0 && damping.get() == 14.0 && mass.get() == 1.0 { "easing-option active" } else { "easing-option" }
                     on:click=move |_| { set_stiffness.set(37.0); set_damping.set(14.0); set_mass.set(1.0); }
                 >
@@ -420,7 +427,9 @@ fn SvgDrawDemo() -> impl IntoView {
     let (running, set_running) = signal(false);
 
     let play = move |_| {
-        if running.get() { return; }
+        if running.get() {
+            return;
+        }
         set_running.set(true);
         set_offset.set(2000.0);
 
@@ -524,7 +533,8 @@ fn make_polygon(sides: usize, cx: f32, cy: f32, r: f32, rotation: f32) -> Vec<[f
 fn make_star(points: usize, cx: f32, cy: f32, r_outer: f32, r_inner: f32) -> Vec<[f32; 2]> {
     let mut pts = Vec::with_capacity(points * 2);
     for i in 0..(points * 2) {
-        let angle = (i as f32 / (points * 2) as f32) * std::f32::consts::TAU - std::f32::consts::FRAC_PI_2;
+        let angle =
+            (i as f32 / (points * 2) as f32) * std::f32::consts::TAU - std::f32::consts::FRAC_PI_2;
         let r = if i % 2 == 0 { r_outer } else { r_inner };
         pts.push([cx + r * angle.cos(), cy + r * angle.sin()]);
     }
@@ -533,7 +543,9 @@ fn make_star(points: usize, cx: f32, cy: f32, r_outer: f32, r_inner: f32) -> Vec
 
 // Resample a polygon to have exactly `n` points
 fn resample_to(pts: &[[f32; 2]], n: usize) -> Vec<[f32; 2]> {
-    if pts.is_empty() { return vec![[0.0; 2]; n]; }
+    if pts.is_empty() {
+        return vec![[0.0; 2]; n];
+    }
     let mut result = Vec::with_capacity(n);
     for i in 0..n {
         let t = i as f32 / (n - 1).max(1) as f32;
@@ -549,23 +561,37 @@ fn resample_to(pts: &[[f32; 2]], n: usize) -> Vec<[f32; 2]> {
     result
 }
 
-const SHAPE_NAMES: &[&str] = &["Triangle", "Circle", "Star", "Hexagon", "Square", "Pentagon"];
+const SHAPE_NAMES: &[&str] = &[
+    "Triangle", "Circle", "Star", "Hexagon", "Square", "Pentagon",
+];
 const NUM_SAMPLE_POINTS: usize = 60;
 
 #[component]
 fn MorphDemo() -> impl IntoView {
-    let cx = 150.0_f32;
-    let cy = 140.0;
-    let r = 100.0;
+    let cx = 100.0_f32;
+    let cy = 100.0;
+    let r = 60.0;
 
     // Pre-generate all shapes resampled to NUM_SAMPLE_POINTS
     let shapes: Vec<Vec<[f32; 2]>> = vec![
-        resample_to(&make_polygon(3, cx, cy, r, -std::f32::consts::FRAC_PI_2), NUM_SAMPLE_POINTS),
+        resample_to(
+            &make_polygon(3, cx, cy, r, -std::f32::consts::FRAC_PI_2),
+            NUM_SAMPLE_POINTS,
+        ),
         resample_to(&make_polygon(60, cx, cy, r, 0.0), NUM_SAMPLE_POINTS), // circle approx
         resample_to(&make_star(5, cx, cy, r, r * 0.4), NUM_SAMPLE_POINTS),
-        resample_to(&make_polygon(6, cx, cy, r, -std::f32::consts::FRAC_PI_2), NUM_SAMPLE_POINTS),
-        resample_to(&make_polygon(4, cx, cy, r, -std::f32::consts::FRAC_PI_4), NUM_SAMPLE_POINTS),
-        resample_to(&make_polygon(5, cx, cy, r, -std::f32::consts::FRAC_PI_2), NUM_SAMPLE_POINTS),
+        resample_to(
+            &make_polygon(6, cx, cy, r, -std::f32::consts::FRAC_PI_2),
+            NUM_SAMPLE_POINTS,
+        ),
+        resample_to(
+            &make_polygon(4, cx, cy, r, -std::f32::consts::FRAC_PI_4),
+            NUM_SAMPLE_POINTS,
+        ),
+        resample_to(
+            &make_polygon(5, cx, cy, r, -std::f32::consts::FRAC_PI_2),
+            NUM_SAMPLE_POINTS,
+        ),
     ];
 
     let (current_shape, set_current_shape) = signal(0_usize);
@@ -593,7 +619,9 @@ fn MorphDemo() -> impl IntoView {
 
     let morph_to = {
         move |idx: usize| {
-            if running.get() || idx == target_shape.get() { return; }
+            if running.get() || idx == target_shape.get() {
+                return;
+            }
             set_running.set(true);
             // Current morph result becomes the new "from"
             set_current_shape.set(target_shape.get());
@@ -631,7 +659,7 @@ fn MorphDemo() -> impl IntoView {
             </div>
 
             <div class="morph-container">
-                <svg viewBox="0 0 300 280">
+                <svg viewBox="0 0 200 200" style="max-width: 200px;">
                     <polygon
                         points=points_str
                         fill="rgba(var(--color-primary-rgb), 0.12)"
@@ -673,7 +701,9 @@ fn TimelineDemo() -> impl IntoView {
     let (running, set_running) = signal(false);
 
     let play = move |_| {
-        if running.get() { return; }
+        if running.get() {
+            return;
+        }
         set_running.set(true);
         set_progress.set(0.0);
 
@@ -699,12 +729,12 @@ fn TimelineDemo() -> impl IntoView {
 
     // Timeline items: (label, start, end, color)
     let items: &[(&str, f32, f32, &str)] = &[
-        ("fade_in",   0.0,  0.20, "var(--color-primary)"),
-        ("slide_up",  0.10, 0.40, "var(--color-secondary)"),
-        ("scale",     0.25, 0.55, "#56b6c2"),
-        ("rotate",    0.40, 0.70, "#c678dd"),
-        ("color",     0.55, 0.80, "#98c379"),
-        ("bounce",    0.70, 1.00, "#e06c75"),
+        ("fade_in", 0.0, 0.20, "var(--color-primary)"),
+        ("slide_up", 0.10, 0.40, "var(--color-secondary)"),
+        ("scale", 0.25, 0.55, "var(--color-gold)"),
+        ("rotate", 0.40, 0.70, "var(--color-primary)"),
+        ("color", 0.55, 0.80, "var(--color-secondary)"),
+        ("bounce", 0.70, 1.00, "var(--color-text-dim)"),
     ];
 
     view! {
@@ -872,33 +902,50 @@ fn SplitTextDemo() -> impl IntoView {
         let word_w_ops = word_w_ops.clone();
         let word_w_ys = word_w_ys.clone();
         move |_: web_sys::MouseEvent| {
-            if playing.get() { return; }
+            if playing.get() {
+                return;
+            }
             set_playing.set(true);
 
             let m = mode.get();
 
             // Reset all
-            for w in &char_w_ops { w.set(0.0); }
-            for w in &char_w_ys { w.set(30.0); }
-            for w in &word_w_ops { w.set(0.0); }
-            for w in &word_w_ys { w.set(25.0); }
+            for w in &char_w_ops {
+                w.set(0.0);
+            }
+            for w in &char_w_ys {
+                w.set(30.0);
+            }
+            for w in &word_w_ops {
+                w.set(0.0);
+            }
+            for w in &word_w_ys {
+                w.set(25.0);
+            }
             set_line_op.set(0.0);
             set_line_y.set(40.0);
 
             match m {
                 0 => {
                     // Character stagger
-                    for (i, (set_op, set_y)) in char_w_ops.iter().zip(char_w_ys.iter()).enumerate() {
+                    for (i, (set_op, set_y)) in char_w_ops.iter().zip(char_w_ys.iter()).enumerate()
+                    {
                         let set_op = *set_op;
                         let set_y = *set_y;
                         let total = char_w_ops.len();
                         let delay = (i as i32) * 30;
                         let cb = wasm_bindgen::closure::Closure::once_into_js(move || {
                             let ty = Rc::new(RefCell::new(
-                                Tween::new(30.0_f32, 0.0).duration(0.5).easing(Easing::EaseOutExpo).build()
+                                Tween::new(30.0_f32, 0.0)
+                                    .duration(0.5)
+                                    .easing(Easing::EaseOutExpo)
+                                    .build(),
                             ));
                             let to = Rc::new(RefCell::new(
-                                Tween::new(0.0_f32, 1.0).duration(0.4).easing(Easing::EaseOutCubic).build()
+                                Tween::new(0.0_f32, 1.0)
+                                    .duration(0.4)
+                                    .easing(Easing::EaseOutCubic)
+                                    .build(),
                             ));
                             let tty = ty.clone();
                             let tto = to.clone();
@@ -913,34 +960,45 @@ fn SplitTextDemo() -> impl IntoView {
                                 }
                             });
                         });
-                        let _ = web_sys::window().unwrap()
+                        let _ = web_sys::window()
+                            .unwrap()
                             .set_timeout_with_callback_and_timeout_and_arguments_0(
-                                cb.as_ref().unchecked_ref(), delay
+                                cb.as_ref().unchecked_ref(),
+                                delay,
                             );
                         if i == total - 1 {
                             let cb2 = wasm_bindgen::closure::Closure::once_into_js(move || {
                                 set_playing.set(false);
                             });
-                            let _ = web_sys::window().unwrap()
+                            let _ = web_sys::window()
+                                .unwrap()
                                 .set_timeout_with_callback_and_timeout_and_arguments_0(
-                                    cb2.as_ref().unchecked_ref(), delay + 600
+                                    cb2.as_ref().unchecked_ref(),
+                                    delay + 600,
                                 );
                         }
                     }
-                },
+                }
                 1 => {
                     // Word stagger
-                    for (i, (set_op, set_y)) in word_w_ops.iter().zip(word_w_ys.iter()).enumerate() {
+                    for (i, (set_op, set_y)) in word_w_ops.iter().zip(word_w_ys.iter()).enumerate()
+                    {
                         let set_op = *set_op;
                         let set_y = *set_y;
                         let total = word_w_ops.len();
                         let delay = (i as i32) * 100;
                         let cb = wasm_bindgen::closure::Closure::once_into_js(move || {
                             let ty = Rc::new(RefCell::new(
-                                Tween::new(25.0_f32, 0.0).duration(0.6).easing(Easing::EaseOutBack).build()
+                                Tween::new(25.0_f32, 0.0)
+                                    .duration(0.6)
+                                    .easing(Easing::EaseOutBack)
+                                    .build(),
                             ));
                             let to = Rc::new(RefCell::new(
-                                Tween::new(0.0_f32, 1.0).duration(0.5).easing(Easing::EaseOutCubic).build()
+                                Tween::new(0.0_f32, 1.0)
+                                    .duration(0.5)
+                                    .easing(Easing::EaseOutCubic)
+                                    .build(),
                             ));
                             let tty = ty.clone();
                             let tto = to.clone();
@@ -955,21 +1013,25 @@ fn SplitTextDemo() -> impl IntoView {
                                 }
                             });
                         });
-                        let _ = web_sys::window().unwrap()
+                        let _ = web_sys::window()
+                            .unwrap()
                             .set_timeout_with_callback_and_timeout_and_arguments_0(
-                                cb.as_ref().unchecked_ref(), delay
+                                cb.as_ref().unchecked_ref(),
+                                delay,
                             );
                         if i == total - 1 {
                             let cb2 = wasm_bindgen::closure::Closure::once_into_js(move || {
                                 set_playing.set(false);
                             });
-                            let _ = web_sys::window().unwrap()
+                            let _ = web_sys::window()
+                                .unwrap()
                                 .set_timeout_with_callback_and_timeout_and_arguments_0(
-                                    cb2.as_ref().unchecked_ref(), delay + 700
+                                    cb2.as_ref().unchecked_ref(),
+                                    delay + 700,
                                 );
                         }
                     }
-                },
+                }
                 _ => {
                     // Line reveal
                     animation::tween_signal(40.0, 0.0, 0.8, Easing::EaseOutExpo, set_line_y);
@@ -977,11 +1039,13 @@ fn SplitTextDemo() -> impl IntoView {
                     let cb = wasm_bindgen::closure::Closure::once_into_js(move || {
                         set_playing.set(false);
                     });
-                    let _ = web_sys::window().unwrap()
+                    let _ = web_sys::window()
+                        .unwrap()
                         .set_timeout_with_callback_and_timeout_and_arguments_0(
-                            cb.as_ref().unchecked_ref(), 1000
+                            cb.as_ref().unchecked_ref(),
+                            1000,
                         );
-                },
+                }
             }
         }
     };
@@ -1086,9 +1150,9 @@ fn SplitTextDemo() -> impl IntoView {
 #[component]
 fn GesturesDemo() -> impl IntoView {
     let (last_gesture, set_last_gesture) = signal("Try interacting!".to_string());
-    
+
     let recognizer = Rc::new(RefCell::new(GestureRecognizer::new()));
-    
+
     {
         let r = recognizer.clone();
         animation::start_raf_loop(move |dt| {
@@ -1127,8 +1191,12 @@ fn GesturesDemo() -> impl IntoView {
                     pressure: ev.pressure(),
                 }) {
                     match g {
-                        Gesture::Pinch { scale, .. } => set_last_gesture.set(format!("Pinch (x{:.2})", scale)),
-                        Gesture::Rotate { angle, .. } => set_last_gesture.set(format!("Rotate ({:.1}°)", angle.to_degrees())),
+                        Gesture::Pinch { scale, .. } => {
+                            set_last_gesture.set(format!("Pinch (x{:.2})", scale))
+                        }
+                        Gesture::Rotate { angle, .. } => {
+                            set_last_gesture.set(format!("Rotate ({:.1}°)", angle.to_degrees()))
+                        }
                         _ => {}
                     }
                 }
@@ -1148,14 +1216,19 @@ fn GesturesDemo() -> impl IntoView {
                 }) {
                     match g {
                         Gesture::Tap { .. } => set_last_gesture.set("Tap".to_string()),
-                        Gesture::Swipe { direction, velocity, .. } => {
+                        Gesture::Swipe {
+                            direction,
+                            velocity,
+                            ..
+                        } => {
                             let dir_str = match direction {
                                 SwipeDirection::Up => "Up",
                                 SwipeDirection::Down => "Down",
                                 SwipeDirection::Left => "Left",
                                 SwipeDirection::Right => "Right",
                             };
-                            set_last_gesture.set(format!("Swipe {} ({:.0} px/s)", dir_str, velocity));
+                            set_last_gesture
+                                .set(format!("Swipe {} ({:.0} px/s)", dir_str, velocity));
                         }
                         _ => {}
                     }
@@ -1187,8 +1260,8 @@ fn GesturesDemo() -> impl IntoView {
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <h3 style="font-size: 1.1rem; font-weight: 600;">"Gesture Recognition"</h3>
             </div>
-            
-            <div 
+
+            <div
                 style="height: 250px; background: rgba(var(--color-primary-rgb), 0.1); border: 2px dashed var(--color-primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: grab; touch-action: none; user-select: none;"
                 on:pointerdown=on_down
                 on:pointermove=on_move
@@ -1203,7 +1276,7 @@ fn GesturesDemo() -> impl IntoView {
                     </div>
                 </div>
             </div>
-            
+
             <p style="margin-top: 1rem; font-size: 0.75rem; color: rgba(255,255,255,0.3); font-family: 'JetBrains Mono', monospace; text-align: center;">
                 "Tap, Long Press, Swipe, or use two fingers to Pinch/Rotate."
             </p>
@@ -1217,7 +1290,7 @@ fn GesturesDemo() -> impl IntoView {
 fn LayoutDemo() -> impl IntoView {
     let (items, set_items) = signal(vec!["FLIP-A", "FLIP-B", "FLIP-C", "FLIP-D"]);
     let layout = Rc::new(RefCell::new(LayoutAnimator::new()));
-    
+
     let (trans_a, set_trans_a) = signal("none".to_string());
     let (trans_b, set_trans_b) = signal("none".to_string());
     let (trans_c, set_trans_c) = signal("none".to_string());
@@ -1225,17 +1298,29 @@ fn LayoutDemo() -> impl IntoView {
 
     let shuffle = {
         let layout_clone = layout.clone();
-        
+
         // Single persistent RAF loop
         let l_c_loop = layout.clone();
         animation::start_raf_loop(move |dt| {
             if let Ok(mut l2) = l_c_loop.try_borrow_mut() {
                 if l2.is_animating() {
                     l2.update(dt);
-                    set_trans_a.set(l2.css_transform("FLIP-A").unwrap_or_else(|| "none".to_string()));
-                    set_trans_b.set(l2.css_transform("FLIP-B").unwrap_or_else(|| "none".to_string()));
-                    set_trans_c.set(l2.css_transform("FLIP-C").unwrap_or_else(|| "none".to_string()));
-                    set_trans_d.set(l2.css_transform("FLIP-D").unwrap_or_else(|| "none".to_string()));
+                    set_trans_a.set(
+                        l2.css_transform("FLIP-A")
+                            .unwrap_or_else(|| "none".to_string()),
+                    );
+                    set_trans_b.set(
+                        l2.css_transform("FLIP-B")
+                            .unwrap_or_else(|| "none".to_string()),
+                    );
+                    set_trans_c.set(
+                        l2.css_transform("FLIP-C")
+                            .unwrap_or_else(|| "none".to_string()),
+                    );
+                    set_trans_d.set(
+                        l2.css_transform("FLIP-D")
+                            .unwrap_or_else(|| "none".to_string()),
+                    );
                 }
             }
         });
@@ -1243,7 +1328,7 @@ fn LayoutDemo() -> impl IntoView {
         move |_| {
             let doc = web_sys::window().unwrap().document().unwrap();
             let mut arr = items.get_untracked();
-            
+
             if let Ok(mut l) = layout_clone.try_borrow_mut() {
                 for id in &arr {
                     if let Some(el) = doc.get_element_by_id(id) {
@@ -1268,9 +1353,12 @@ fn LayoutDemo() -> impl IntoView {
                     l.compute_transitions(&new_rects, 0.5, Easing::EaseOutCubic);
                 }
             });
-            let _ = web_sys::window().unwrap().set_timeout_with_callback_and_timeout_and_arguments_0(
-                cb.as_ref().unchecked_ref(), 10
-            );
+            let _ = web_sys::window()
+                .unwrap()
+                .set_timeout_with_callback_and_timeout_and_arguments_0(
+                    cb.as_ref().unchecked_ref(),
+                    10,
+                );
         }
     };
 
@@ -1282,28 +1370,30 @@ fn LayoutDemo() -> impl IntoView {
                     "🔁 Reorder Items"
                 </button>
             </div>
-            
+
             <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                 <For
                     each=move || items.get()
                     key=|id| *id
                     children=move |id| {
                         let (bg, t_sig) = match id {
-                            "FLIP-A" => ("var(--color-primary)", trans_a),
-                            "FLIP-B" => ("var(--color-secondary)", trans_b),
-                            "FLIP-C" => ("#56b6c2", trans_c),
-                            _        => ("#c678dd", trans_d),
+                            "FLIP-A" => ("var(--color-primary)".to_string(), trans_a),
+                            "FLIP-B" => ("var(--color-secondary)".to_string(), trans_b),
+                            "FLIP-C" => ("var(--color-gold)".to_string(), trans_c),
+                            _        => ("#FF6B6B".to_string(), trans_d),
                         };
                         view! {
-                            <div 
+                            <div
                                 id=id
-                                style=move || format!(
-                                    "width: 100px; height: 100px; border-radius: 12px; background: {}; \
-                                     display: flex; align-items: center; justify-content: center; \
-                                     font-size: 2rem; font-weight: 700; transform: {}; transform-origin: top left; \
-                                     transition: none; will-change: transform;",
-                                    bg, t_sig.get()
-                                )
+                                style=move || {
+                                    format!(
+                                        "width: 100px; height: 100px; border-radius: 12px; background: {}; \
+                                         display: flex; align-items: center; justify-content: center; \
+                                         font-size: 2rem; font-weight: 700; transform: {}; transform-origin: top left; \
+                                         transition: none; will-change: transform;",
+                                        bg, t_sig.get()
+                                    )
+                                }
                             >
                                 {id.chars().last().unwrap().to_string()}
                             </div>
@@ -1311,7 +1401,7 @@ fn LayoutDemo() -> impl IntoView {
                     }
                 />
             </div>
-            
+
             <p style="margin-top: 1.5rem; font-size: 0.75rem; color: rgba(255,255,255,0.3); font-family: 'JetBrains Mono', monospace; text-align: center;">
                 "LayoutAnimator tracks element bounding rects and generates translation/scale tweens."
             </p>

@@ -1,7 +1,7 @@
-use leptos::prelude::*;
-use wasm_bindgen::JsCast;
 use crate::animation;
+use leptos::prelude::*;
 use spanda::Easing;
+use wasm_bindgen::JsCast;
 
 #[component]
 pub fn Splash() -> impl IntoView {
@@ -10,28 +10,26 @@ pub fn Splash() -> impl IntoView {
     let (fade_out, set_fade_out) = signal(false);
 
     Effect::new(move || {
-        animation::tween_signal(
-            0.0,
-            100.0,
-            2.2,
-            Easing::EaseOutExpo,
-            set_progress,
-        );
+        animation::tween_signal(0.0, 100.0, 2.2, Easing::EaseOutExpo, set_progress);
 
         let cb = wasm_bindgen::closure::Closure::once_into_js(move || {
             set_fade_out.set(true);
             let cb2 = wasm_bindgen::closure::Closure::once_into_js(move || {
                 set_visible.set(false);
             });
-            let _ = web_sys::window().unwrap().set_timeout_with_callback_and_timeout_and_arguments_0(
-                cb2.as_ref().unchecked_ref(),
-                800,
-            );
+            let _ = web_sys::window()
+                .unwrap()
+                .set_timeout_with_callback_and_timeout_and_arguments_0(
+                    cb2.as_ref().unchecked_ref(),
+                    800,
+                );
         });
-        let _ = web_sys::window().unwrap().set_timeout_with_callback_and_timeout_and_arguments_0(
-            cb.as_ref().unchecked_ref(),
-            2500,
-        );
+        let _ = web_sys::window()
+            .unwrap()
+            .set_timeout_with_callback_and_timeout_and_arguments_0(
+                cb.as_ref().unchecked_ref(),
+                2500,
+            );
     });
 
     move || {
