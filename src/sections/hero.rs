@@ -189,47 +189,54 @@ pub fn Hero() -> impl IntoView {
     }).collect();
 
     view! {
-        <section class="hero-section" id="hero">
-            <div class="hero-bg-mesh" />
-            <div class="orb orb-1" />
-            <div class="orb orb-2" />
-            <div class="orb orb-3" />
+        <section class="min-h-screen relative flex flex-col lg:flex-row items-center justify-between px-[5%] overflow-hidden bg-bg" id="hero">
+            <div class="absolute inset-0 pointer-events-none opacity-[0.03]" style="background-image: url('data:image/svg+xml;utf8,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E');"></div>
 
-            <div style="position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; padding: 0 2rem;">
-                <h1 class="hero-title" style="overflow: hidden;">
-                    {letter_views}
-                </h1>
+            <div class="relative z-10 flex w-full max-w-[1300px] mx-auto items-center">
 
-                <p class="hero-subtitle" style="opacity: 1; animation: none; display: flex; flex-wrap: wrap; justify-content: center;">
-                    {word_views}
-                </p>
+                <div class="flex-1 flex flex-col items-start pt-[20vh] pb-[10vh] lg:py-0 relative">
+                    <h1 class="font-instrument italic text-[14vw] lg:text-[11vw] leading-none overflow-hidden max-w-[800px] text-ink" style="letter-spacing: -0.02em;">
+                        {letter_views}
+                    </h1>
 
-                <div class="hero-badge" style=move || format!(
-                    "opacity: {}; animation: none; transform: translateY({}px);",
-                    badge_opacity.get(),
-                    (1.0 - badge_opacity.get()) * 15.0
-                )>
-                    <span>"🦀"</span>
-                    <span>"v0.9.1  ·  no_std  ·  zero unsafe"</span>
+                    <p class="font-syne text-ink-muted text-[1rem] lg:text-[1.3rem] mt-6 max-w-[600px] font-medium leading-relaxed flex flex-wrap justify-start" style="opacity: 1; animation: none;">
+                        {word_views}
+                    </p>
+
+                    <div class="hidden lg:block absolute bottom-[-10vh] left-[-5vw] origin-bottom-left -rotate-90 font-mono text-[4rem] text-ink-muted whitespace-nowrap" style=move || format!(
+                        "opacity: {}; transform: translateY({}px) rotate(-90deg);",
+                        badge_opacity.get() * 0.15,
+                        (1.0 - badge_opacity.get()) * 15.0
+                    )>
+                        "v0.9.2 / SPANDA"
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-4 mt-12" style=move || format!(
+                        "opacity: {}; animation: none; transform: translateY({}px);",
+                        cta_opacity.get(),
+                        (1.0 - cta_opacity.get()) * 15.0
+                    )>
+                        <a href="https://github.com/aarambh-darshan/spanda" target="_blank" class="bg-black text-accent font-mono uppercase px-8 py-4 border-2 border-black inline-flex items-center gap-2 hover:bg-accent-dark hover:text-black transition-colors" style="cursor: none">
+                            "⭐ Star on GitHub"
+                        </a>
+                        <a href="https://docs.rs/spanda" target="_blank" class="bg-transparent text-black font-mono uppercase px-8 py-4 border-2 border-border inline-flex items-center gap-2 hover:bg-black hover:text-accent transition-colors" style="cursor: none">
+                            "📖 Read the Docs"
+                        </a>
+                    </div>
                 </div>
 
-                <div class="hero-cta-group" style=move || format!(
-                    "opacity: {}; animation: none; transform: translateY({}px);",
-                    cta_opacity.get(),
-                    (1.0 - cta_opacity.get()) * 15.0
-                )>
-                    <a href="https://github.com/aarambh-darshan/spanda" target="_blank" class="btn-primary">
-                        "⭐ Star on GitHub"
-                    </a>
-                    <a href="https://docs.rs/spanda" target="_blank" class="btn-secondary">
-                        "📖 Read the Docs"
-                    </a>
+                <div class="flex-[0.8] relative h-[500px] hidden lg:flex items-center justify-center" style="perspective: 1000px;">
+                    <div class="w-[300px] h-[400px] bg-bg border-[4px] border-border -rotate-12 flex flex-col p-8 gap-4 absolute z-20" style="box-shadow: 20px 20px 0px rgba(10,10,10,0.1)">
+                        <div class="w-full h-[2px] bg-ink"></div>
+                        <div class="w-2/3 h-[2px] bg-ink"></div>
+                        <div class="w-12 h-12 bg-accent mt-auto self-end border-[4px] border-border"></div>
+                    </div>
+                    <div class="w-[250px] h-[350px] bg-code-bg border-[4px] border-accent translate-x-[60px] translate-y-[40px] absolute z-10 flex flex-col p-6 gap-3">
+                        <div class="w-full h-3 bg-accent"></div>
+                        <div class="w-3/4 h-3 bg-accent opacity-60"></div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="scroll-indicator">
-                <span>"Scroll"</span>
-                <div class="scroll-indicator-line" />
             </div>
         </section>
     }

@@ -1,7 +1,6 @@
-
-
-mod app;
 mod animation;
+mod app;
+mod cursor;
 mod sections;
 
 fn main() {

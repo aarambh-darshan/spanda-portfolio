@@ -1,13 +1,13 @@
 //! Spanda ↔ Leptos animation bridge.
 
-use std::cell::RefCell;
-use std::rc::Rc;
 use leptos::prelude::*;
-use wasm_bindgen::prelude::*;
-use wasm_bindgen::JsCast;
-use spanda::{Tween, Easing, Spring, SpringConfig};
 use spanda::traits::Update as _;
 use spanda::tween::TweenState;
+use spanda::{Easing, Spring, SpringConfig, Tween};
+use std::cell::RefCell;
+use std::rc::Rc;
+use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsCast;
 
 /// Request a single `requestAnimationFrame` callback.
 pub fn request_animation_frame(f: &Closure<dyn FnMut(f64)>) -> i32 {
@@ -94,13 +94,7 @@ pub fn start_cancellable_raf_loop(
 }
 
 /// Run a simple Tween driving a signal, auto-cleaning up when done.
-pub fn tween_signal(
-    from: f32,
-    to: f32,
-    duration: f32,
-    easing: Easing,
-    signal: WriteSignal<f32>,
-) {
+pub fn tween_signal(from: f32, to: f32, duration: f32, easing: Easing, signal: WriteSignal<f32>) {
     let tween = Rc::new(RefCell::new(
         Tween::new(from, to)
             .duration(duration)
@@ -120,11 +114,7 @@ pub fn tween_signal(
 
 /// Run a spring animation driving a signal.
 #[allow(dead_code)]
-pub fn spring_signal(
-    config: SpringConfig,
-    target: f32,
-    signal: WriteSignal<f32>,
-) {
+pub fn spring_signal(config: SpringConfig, target: f32, signal: WriteSignal<f32>) {
     let spring = Rc::new(RefCell::new(Spring::new(config)));
 
     let spring_clone = spring.clone();
